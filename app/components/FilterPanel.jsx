@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, RotateCcw } from "lucide-react";
+import { Search, RotateCcw, SlidersHorizontal } from "lucide-react";
 
 const JobFilterPanel = ({ onFilterChange }) => {
   const [filters, setFilters] = useState({
@@ -34,39 +34,74 @@ const JobFilterPanel = ({ onFilterChange }) => {
     onFilterChange(cleared);
   };
 
+  const activeCount = [
+    filters.keyword,
+    filters.jobType,
+    filters.location,
+  ].filter(Boolean).length + filters.tags.length;
+
   return (
-    <div className="bg-white shadow-md rounded-lg p-5 h-fit">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold font-mono">Filter Jobs</h2>
-        <button
-          onClick={resetFilters}
-          className="flex items-center text-xs text-gray-500 hover:text-blue-500 transition"
-        >
-          <RotateCcw size={14} className="mr-1" /> Reset
-        </button>
+    <div
+      style={{
+        background: "var(--bg2)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        padding: "20px",
+        height: "fit-content",
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <SlidersHorizontal size={14} color="var(--accent)" />
+          <span style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>Filters</span>
+          {activeCount > 0 && (
+            <span
+              style={{
+                background: "var(--accent)",
+                color: "#0f0f0f",
+                fontSize: 10,
+                fontWeight: 700,
+                borderRadius: 999,
+                padding: "1px 6px",
+                fontFamily: "'DM Mono', monospace",
+              }}
+            >
+              {activeCount}
+            </span>
+          )}
+        </div>
+        {activeCount > 0 && (
+          <button className="btn-ghost" onClick={resetFilters} style={{ fontSize: 12, padding: "3px 8px" }}>
+            <RotateCcw size={11} /> Reset
+          </button>
+        )}
       </div>
 
-      {/* Keyword Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+      {/* Search */}
+      <div style={{ position: "relative", marginBottom: 14 }}>
+        <Search
+          size={14}
+          style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text3)", pointerEvents: "none" }}
+        />
         <input
           type="text"
-          placeholder="Search by title or company..."
+          placeholder="Title or company..."
           value={filters.keyword}
           onChange={(e) => handleFilterChange("keyword", e.target.value)}
-          className="w-full font-mono p-2 pl-8 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="input-dark"
+          style={{ paddingLeft: 34, fontSize: 13 }}
         />
       </div>
 
       {/* Job Type */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1 font-mono">
-          Job Type
-        </label>
+      <div style={{ marginBottom: 14 }}>
+        <label className="section-label" style={{ display: "block", marginBottom: 6 }}>Job Type</label>
         <select
           value={filters.jobType}
           onChange={(e) => handleFilterChange("jobType", e.target.value)}
-          className="w-full font-mono p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="input-dark"
+          style={{ fontSize: 13 }}
         >
           {jobTypeOptions.map((type) => (
             <option key={type} value={type === "All" ? "" : type}>
@@ -77,14 +112,13 @@ const JobFilterPanel = ({ onFilterChange }) => {
       </div>
 
       {/* Location */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1 font-mono">
-          Location
-        </label>
+      <div style={{ marginBottom: 16 }}>
+        <label className="section-label" style={{ display: "block", marginBottom: 6 }}>Location</label>
         <select
           value={filters.location}
           onChange={(e) => handleFilterChange("location", e.target.value)}
-          className="w-full font-mono p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="input-dark"
+          style={{ fontSize: 13 }}
         >
           {locationOptions.map((loc) => (
             <option key={loc} value={loc === "All" ? "" : loc}>
@@ -96,20 +130,14 @@ const JobFilterPanel = ({ onFilterChange }) => {
 
       {/* Tags */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2 font-mono">
-          Tags
-        </label>
-        <div className="flex flex-wrap gap-2">
+        <label className="section-label" style={{ display: "block", marginBottom: 8 }}>Tags</label>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {tagOptions.map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => handleTagToggle(tag)}
-              className={`px-3 py-1 rounded-full border text-sm font-mono transition-colors duration-200 ${
-                filters.tags.includes(tag)
-                  ? "bg-blue-500 text-white border-blue-500"
-                  : "bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100"
-              }`}
+              className={`tag-chip ${filters.tags.includes(tag) ? "active" : ""}`}
             >
               {tag}
             </button>

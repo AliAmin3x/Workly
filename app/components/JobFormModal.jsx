@@ -3,28 +3,27 @@
 import { useState, useEffect } from "react";
 import Modal from "./Modal";
 
+const Field = ({ label, children }) => (
+  <div>
+    <label
+      className="section-label"
+      style={{ display: "block", marginBottom: 6 }}
+    >
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
 const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    company: "",
-    description: "",
-    location: "",
-    type: "",
-    date_posted: "",
-    link: "",
-  });
+  const empty = { title: "", company: "", description: "", location: "", type: "", date_posted: "", link: "" };
+  const [formData, setFormData] = useState(empty);
 
   useEffect(() => {
-    if (jobData) {
-      setFormData(jobData);
-    } else {
-      setFormData({ title: "", company: "", description: "", location: "", type: "", date_posted: "", link: "" });
-    }
+    setFormData(jobData ? { ...empty, ...jobData } : empty);
   }, [jobData, isOpen]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -33,75 +32,92 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={jobData ? "Edit Job" : "Add Job"}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          placeholder="Job Title"
-          className="w-full border border-gray-300 rounded-lg p-2"
-          required
-        />
-        <input
-          type="text"
-          name="company"
-          value={formData.company || ""}
-          onChange={handleChange}
-          placeholder="Company"
-          className="w-full border border-gray-300 rounded-lg p-2"
-        />
-        <textarea
-          name="description"
-          value={formData.description || ""}
-          onChange={handleChange}
-          placeholder="Job Description"
-          className="w-full border border-gray-300 rounded-lg p-2"
-          rows="3"
-        />
-        <div className="flex gap-2">
+    <Modal isOpen={isOpen} onClose={onClose} title={jobData ? "Edit listing" : "New listing"}>
+      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <Field label="Job Title *">
           <input
             type="text"
-            name="location"
-            value={formData.location || ""}
+            name="title"
+            value={formData.title}
             onChange={handleChange}
-            placeholder="Location"
-            className="w-1/2 border border-gray-300 rounded-lg p-2"
+            placeholder="e.g. Senior Frontend Engineer"
+            className="input-dark"
+            required
           />
+        </Field>
+
+        <Field label="Company">
           <input
             type="text"
-            name="type"
-            value={formData.type || ""}
+            name="company"
+            value={formData.company || ""}
             onChange={handleChange}
-            placeholder="Type (Full-time / Part-time)"
-            className="w-1/2 border border-gray-300 rounded-lg p-2"
+            placeholder="e.g. Acme Corp"
+            className="input-dark"
           />
+        </Field>
+
+        <Field label="Description">
+          <textarea
+            name="description"
+            value={formData.description || ""}
+            onChange={handleChange}
+            placeholder="What's this role about?"
+            className="input-dark"
+            rows={4}
+            style={{ resize: "vertical", minHeight: 90 }}
+          />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <Field label="Location">
+            <input
+              type="text"
+              name="location"
+              value={formData.location || ""}
+              onChange={handleChange}
+              placeholder="Remote / NYC"
+              className="input-dark"
+            />
+          </Field>
+          <Field label="Job Type">
+            <select name="type" value={formData.type || ""} onChange={handleChange} className="input-dark">
+              <option value="">Select type</option>
+              {["Full-time", "Part-time", "Internship", "Contract"].map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+          </Field>
         </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            name="date_posted"
-            value={formData.date_posted || ""}
-            onChange={handleChange}
-            placeholder="Date Posted"
-            className="w-1/2 border border-gray-300 rounded-lg p-2"
-          />
-          <input
-            type="text"
-            name="link"
-            value={formData.link || ""}
-            onChange={handleChange}
-            placeholder="Job Link (URL)"
-            className="w-1/2 border border-gray-300 rounded-lg p-2"
-          />
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <Field label="Date Posted">
+            <input
+              type="text"
+              name="date_posted"
+              value={formData.date_posted || ""}
+              onChange={handleChange}
+              placeholder="e.g. May 2025"
+              className="input-dark"
+            />
+          </Field>
+          <Field label="Application Link">
+            <input
+              type="url"
+              name="link"
+              value={formData.link || ""}
+              onChange={handleChange}
+              placeholder="https://..."
+              className="input-dark"
+            />
+          </Field>
         </div>
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 transition"
-        >
-          {jobData ? "Update Job" : "Add Job"}
-        </button>
+
+        <div style={{ paddingTop: 4 }}>
+          <button type="submit" className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "13px" }}>
+            {jobData ? "Save changes" : "Add listing"}
+          </button>
+        </div>
       </form>
     </Modal>
   );
