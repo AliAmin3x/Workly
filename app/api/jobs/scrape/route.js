@@ -1,31 +1,37 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const pythonBackendUrl = process.env.PYTHON_BACKEND_URL;
+
+  // Not configured yet
+  if (!pythonBackendUrl) {
+    return NextResponse.json({
+      message: "Scraper not configured. Set PYTHON_BACKEND_URL in Vercel environment variables.",
+      scraped: 0,
+    }, { status: 200 });
+  }
+
   try {
-    const pythonBackendUrl = process.env.PYTHON_BACKEND_URL;
-
-    if (!pythonBackendUrl) {
-      return NextResponse.json({
-        message: "PYTHON_BACKEND_URL is not set. Add your Railway backend URL to Vercel environment variables.",
-        scraped: 0,
-      });
-    }
-
     const res = await fetch(`${pythonBackendUrl}/api/jobs/scrape`, {
-      signal: AbortSignal.timeout(60000), // scraping takes time
+      signal: AbortSignal.timeout(60000),
     });
 
+    const text = await res.text();
+
     if (!res.ok) {
-      throw new Error(`Backend returned ${res.status}`);
+      return NextResponse.json(
+        { error: `Backend error (${res.status}): ${text}` },
+        { status: 502 }
+      );
     }
 
-    const data = await res.json();
+    const data = JSON.parse(text);
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Scrape proxy error:", error);
-    return NextResponse.json(
-      { error: "Scraping failed. Make sure the Python backend is running." },
-      { status: 500 }
-    );
+    const msg = error.name === "TimeoutError"
+      ? "Request timed out — scraping takes a while, try again."
+      : `Could not reach backend at ${pythonBackendUrl}: ${error.message}`;
+
+    return NextResponse.json({ error: msg }, { status: 502 });
   }
 }
