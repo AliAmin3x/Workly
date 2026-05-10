@@ -1,63 +1,54 @@
 import { NextResponse } from "next/server";
-import { getDb, saveDb, rowsToJobs } from "@/lib/db";
+import { getDb } from "@/lib/db";
 
-// PUT /api/jobs/[id] - update a job
 export async function PUT(request, { params }) {
   try {
+    const db = await getDb();
     const id = params.id;
     const data = await request.json();
-    const { title, company, location, type, description, date_posted, link } = data;
 
-    const db = await getDb();
-
-    // Check if job exists
-    const existing = db.exec("SELECT * FROM jobs WHERE id = ?", [id]);
-    if (!existing || existing.length === 0 || existing[0].values.length === 0) {
+    const existing = await db.execute({ sql: "SELECT * FROM jobs WHERE id = ?", args: [id] });
+    if (existing.rows.length === 0) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    db.run(
-      `UPDATE jobs SET
-        title = COALESCE(?, title),
-        company = COALESCE(?, company),
-        location = COALESCE(?, location),
-        type = COALESCE(?, type),
-        description = COALESCE(?, description),
-        date_posted = COALESCE(?, date_posted),
-        link = COALESCE(?, link)
-       WHERE id = ?`,
-      [title, company, location, type, description, date_posted, link, id]
-    );
+    const job = existing.rows[0];
+    await db.execute({
+      sql: `UPDATE jobs SET title=?, company=?, location=?, type=?, description=?, date_posted=?, link=? WHERE id=?`,
+      args: [
+        data.title ?? job.title,
+        data.company ?? job.company,
+        data.location ?? job.location,
+        data.type ?? job.type,
+        data.description ?? job.description,
+        data.date_posted ?? job.date_posted,
+        data.link ?? job.link,
+        id,
+      ],
+    });
 
-    saveDb();
-
-    const result = db.exec("SELECT * FROM jobs WHERE id = ?", [id]);
-    const jobs = rowsToJobs(result);
-
-    return NextResponse.json(jobs[0]);
+    const updated = await db.execute({ sql: "SELECT * FROM jobs WHERE id = ?", args: [id] });
+    return NextResponse.json(updated.rows[0]);
   } catch (error) {
     console.error("PUT /api/jobs/[id] error:", error);
-    return NextResponse.json({ error: "Failed to update job" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to update job" }, { status: 500 });
   }
 }
 
-// DELETE /api/jobs/[id] - delete a job
 export async function DELETE(request, { params }) {
   try {
-    const id = params.id;
     const db = await getDb();
+    const id = params.id;
 
-    const existing = db.exec("SELECT * FROM jobs WHERE id = ?", [id]);
-    if (!existing || existing.length === 0 || existing[0].values.length === 0) {
+    const existing = await db.execute({ sql: "SELECT * FROM jobs WHERE id = ?", args: [id] });
+    if (existing.rows.length === 0) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    db.run("DELETE FROM jobs WHERE id = ?", [id]);
-    saveDb();
-
+    await db.execute({ sql: "DELETE FROM jobs WHERE id = ?", args: [id] });
     return NextResponse.json({ message: "Job deleted successfully" });
   } catch (error) {
     console.error("DELETE /api/jobs/[id] error:", error);
-    return NextResponse.json({ error: "Failed to delete job" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Failed to delete job" }, { status: 500 });
   }
 }

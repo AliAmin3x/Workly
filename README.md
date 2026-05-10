@@ -85,3 +85,45 @@ PYTHON_BACKEND_URL=http://127.0.0.1:5000
 - **Backend (API)**: Next.js API Routes
 - **Database**: SQLite via `@libsql/client`
 - **Scraper**: Python + Selenium + BeautifulSoup (in `backend/`)
+
+## Deploying to Vercel
+
+This is a pure **Next.js** app — deploy it as a single web service, not two services.
+
+### Step 1 — Create a free Turso database
+
+```bash
+npm install -g @tursodatabase/cli
+turso auth login
+turso db create workly
+turso db show workly        # copy the URL
+turso db tokens create workly  # copy the token
+```
+
+### Step 2 — Deploy on Vercel
+
+1. Go to [vercel.com/new](https://vercel.com/new) and import **AliAmin3x/Workly**
+2. Set the **Root Directory** to `./` (the default)
+3. Select **Next.js** as the framework (it should auto-detect)
+4. Under **Environment Variables**, add:
+   - `TURSO_DATABASE_URL` → your Turso DB URL (`libsql://workly-...turso.io`)
+   - `TURSO_AUTH_TOKEN` → your Turso auth token
+5. Click **Deploy**
+
+> **Important:** On the Vercel import screen, if you see two services (backend + frontend), ignore the `vercel.json` suggestion — just scroll down, set Root Directory to `./`, and deploy as a single Next.js project. The `.vercelignore` file will hide the Python backend folder.
+
+### Local development
+
+Create `.env.local` in the project root:
+
+```env
+TURSO_DATABASE_URL=libsql://your-db-name.turso.io
+TURSO_AUTH_TOKEN=your-token-here
+```
+
+Then:
+
+```bash
+npm install
+npm run dev
+```
