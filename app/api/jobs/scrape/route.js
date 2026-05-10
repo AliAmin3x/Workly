@@ -2,25 +2,30 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const pythonBackendUrl = process.env.PYTHON_BACKEND_URL || "http://127.0.0.1:5000";
+    const pythonBackendUrl = process.env.PYTHON_BACKEND_URL;
 
-    try {
-      const res = await fetch(`${pythonBackendUrl}/api/jobs/scrape`, {
-        signal: AbortSignal.timeout(30000),
+    if (!pythonBackendUrl) {
+      return NextResponse.json({
+        message: "PYTHON_BACKEND_URL is not set. Add your Railway backend URL to Vercel environment variables.",
+        scraped: 0,
       });
-      if (res.ok) {
-        const data = await res.json();
-        return NextResponse.json(data);
-      }
-    } catch {
-      // Python backend not running
     }
 
-    return NextResponse.json({
-      message: "Scraper requires the Python backend. Run: cd backend && python app.py",
-      scraped: 0,
+    const res = await fetch(`${pythonBackendUrl}/api/jobs/scrape`, {
+      signal: AbortSignal.timeout(60000), // scraping takes time
     });
+
+    if (!res.ok) {
+      throw new Error(`Backend returned ${res.status}`);
+    }
+
+    const data = await res.json();
+    return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json({ error: "Scrape failed" }, { status: 500 });
+    console.error("Scrape proxy error:", error);
+    return NextResponse.json(
+      { error: "Scraping failed. Make sure the Python backend is running." },
+      { status: 500 }
+    );
   }
 }

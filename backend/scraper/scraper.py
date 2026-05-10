@@ -1,9 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
-from models.job import Job, db
+import os
 import time
 
 
@@ -12,8 +11,22 @@ def scrape_jobs():
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
 
-    service = Service(ChromeDriverManager().install())
+    # Use system chromium if available (Docker), otherwise let webdriver-manager handle it
+    chrome_bin = os.environ.get("CHROME_BIN")
+    chromedriver_path = os.environ.get("CHROMEDRIVER_PATH")
+
+    if chrome_bin:
+        options.binary_location = chrome_bin
+
+    if chromedriver_path:
+        service = Service(chromedriver_path)
+    else:
+        from webdriver_manager.chrome import ChromeDriverManager
+        service = Service(ChromeDriverManager().install())
+
     driver = webdriver.Chrome(service=service, options=options)
 
     try:
@@ -22,16 +35,10 @@ def scrape_jobs():
         time.sleep(3)
 
         soup = BeautifulSoup(driver.page_source, "html.parser")
-
-        # print('soup', soup.prettify()[:5000]) 
-        # print('soup', soup.select("article"))
-        cards = soup.select("article")
-        print('cards', len(cards), cards[:2])  # Print number of article cards and first 2 cards
         job_cards = soup.select("article div[class^='Job_job-card']")
         print(f"Found {len(job_cards)} job cards")
 
         jobs = []
-
         for job in job_cards:
             title_el = job.select_one("p.Job_job-card__position__ic1rc")
             company_el = job.select_one("p.Job_job-card__company__7T9qY")
@@ -48,18 +55,18 @@ def scrape_jobs():
                 if link_el and link_el.get("href")
                 else None
             )
+
             if not title or not link:
                 continue
 
-            job_data = {
+            jobs.append({
                 "title": title,
                 "company": company,
                 "location": location,
                 "date_posted": date_posted,
                 "link": link,
                 "description": None,
-            }
-            jobs.append(job_data)
+            })
 
         return jobs
 
