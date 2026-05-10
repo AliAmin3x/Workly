@@ -81,10 +81,14 @@ body::before {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, opacity 0.15s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+}
+
+.job-card[draggable="true"]:active {
+  cursor: grabbing;
 }
 
 .job-card::before {

@@ -10,6 +10,7 @@ import JobFormModal from "./JobFormModal";
 import FilterPanel from "./FilterPanel";
 import DeleteModal from "./DeleteModal";
 import Header from "./Header";
+import DraggableList from "./DraggableList";
 
 const typeColors = {
   "full-time": { bg: "rgba(92,184,122,0.1)", color: "#5cb87a", border: "rgba(92,184,122,0.25)" },
@@ -143,17 +144,20 @@ const Dashboard = () => {
               ))}
             </div>
           ) : jobs.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {jobs.map((job, i) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  index={i}
-                  onView={(j) => setActiveJob(j)}
-                  onEdit={(j) => { setSelectedJob(j); setIsModalOpen(true); }}
-                  onDelete={(id) => { setSelectedJob(jobs.find((j) => j.id === id)); setIsDeleteOpen(true); }}
-                />
-              ))}
+            <div style={{ paddingLeft: 28 }}>
+              <DraggableList
+                items={jobs}
+                onReorder={setJobs}
+                renderItem={(job, i) => (
+                  <JobCard
+                    job={job}
+                    index={i}
+                    onView={(j) => setActiveJob(j)}
+                    onEdit={(j) => { setSelectedJob(j); setIsModalOpen(true); }}
+                    onDelete={(id) => { setSelectedJob(jobs.find((j) => j.id === id)); setIsDeleteOpen(true); }}
+                  />
+                )}
+              />
             </div>
           ) : (
             <div className="empty-state">

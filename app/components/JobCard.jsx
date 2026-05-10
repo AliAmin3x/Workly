@@ -43,11 +43,18 @@ const JobCard = ({ job, onView, onEdit, onDelete, index = 0 }) => {
   const typeStyle = getTypeStyle(job.type);
   const avatarColor = getAvatarColor(job.company);
 
+  const handleCardClick = (e) => {
+    // Don't open drawer if the user was dragging
+    if (e.defaultPrevented) return;
+    setMenuOpen(false);
+    onView && onView(job);
+  };
+
   return (
     <div
       className="job-card animate-fade-up"
       style={{ animationDelay: `${index * 50}ms`, opacity: 0 }}
-      onClick={() => { setMenuOpen(false); onView && onView(job); }}
+      onClick={handleCardClick}
     >
       <div style={{ padding: "20px 20px 16px" }}>
         {/* Top row */}
