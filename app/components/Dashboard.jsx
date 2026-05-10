@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import JobCard from "@/components/JobCard";
-import JobFormModal from "@/components/JobFormModal";
-import JobFilterPanel from "@/components/FilterJob";
-import DeleteModal from "@/components/DeleteJob";
 import { SquarePlus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from "react-hot-toast";
+import JobCard from "./JobCard";
+import JobFormModal from "./JobFormModal";
+import FilterPanel from "./FilterPanel";
+import DeleteModal from "./DeleteModal";
 
 const Dashboard = () => {
   const [jobs, setJobs] = useState([]);
@@ -16,6 +16,7 @@ const Dashboard = () => {
   const [activeJob, setActiveJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isScraping, setIsScraping] = useState(false);
 
   const [filters, setFilters] = useState({
     keyword: "",
@@ -24,14 +25,14 @@ const Dashboard = () => {
     tags: [],
   });
 
-  const fetchJobs = async (f = filters) => {
+  const fetchJobs = async (currentFilters) => {
     try {
       const res = await axios.get("/api/jobs", {
         params: {
-          keyword: f.keyword,
-          type: f.jobType,
-          location: f.location,
-          tags: f.tags.join(","),
+          keyword: currentFilters.keyword,
+          type: currentFilters.jobType,
+          location: currentFilters.location,
+          tags: currentFilters.tags.join(","),
         },
       });
       setJobs(res.data);
@@ -42,8 +43,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchJobs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchJobs(filters);
   }, []);
 
   const handleFilterChange = (newFilters) => {
@@ -65,7 +65,7 @@ const Dashboard = () => {
         await axios.post("/api/jobs", updatedJob);
         toast.success("Job added successfully!");
       }
-      fetchJobs();
+      fetchJobs(filters);
       setIsModalOpen(false);
       setSelectedJob(null);
     } catch (error) {
@@ -86,8 +86,21 @@ const Dashboard = () => {
     }
   };
 
+  const handleScrape = async () => {
+    setIsScraping(true);
+    try {
+      const res = await axios.get("/api/jobs/scrape");
+      toast.success(res.data.message || "Scraping completed!");
+      fetchJobs(filters);
+    } catch (error) {
+      toast.error("Scraping failed.");
+    } finally {
+      setIsScraping(false);
+    }
+  };
+
   return (
-    <div className="flex p-6 gap-6 relative">
+    <div className="flex p-6 gap-6 relative pt-20">
       <Toaster position="top-right" reverseOrder={false} />
 
       {/* Main job list */}
@@ -97,7 +110,7 @@ const Dashboard = () => {
             <JobCard
               key={job.id}
               job={job}
-              onView={(job) => setActiveJob(job)}
+              onView={(j) => setActiveJob(j)}
               onEdit={() => handleEdit(job)}
               onDelete={() => {
                 setSelectedJob(job);
@@ -110,28 +123,30 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Filter Panel + Add Job Button */}
-      <div className="fixed right-0 mt-10 mx-5 w-1/4">
+      {/* Right sidebar: Add Job + Scrape + Filter */}
+      <div className="fixed right-0 mt-10 mx-5 w-1/4 space-y-3">
         <button
-          onClick={() => {
-            setSelectedJob(null);
-            setIsModalOpen(true);
-          }}
-          className="font-mono px-7 py-2 bg-[#3b82f6] rounded-xl font-bold text-white flex gap-2 text-lg items-center mb-4 w-full"
+          onClick={() => { setSelectedJob(null); setIsModalOpen(true); }}
+          className="font-mono px-7 py-2 bg-blue-500 rounded-xl font-bold text-white flex gap-2 text-lg items-center w-full"
         >
           Add new Job <SquarePlus size={18} />
         </button>
 
-        <JobFilterPanel onFilterChange={handleFilterChange} />
+        <button
+          onClick={handleScrape}
+          disabled={isScraping}
+          className="font-mono px-7 py-2 bg-gray-700 rounded-xl font-bold text-white flex gap-2 text-lg items-center w-full disabled:opacity-60"
+        >
+          {isScraping ? "Scraping..." : "Scrape Jobs"}
+        </button>
+
+        <FilterPanel onFilterChange={handleFilterChange} />
       </div>
 
       {/* Job Form Modal */}
       <JobFormModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedJob(null);
-        }}
+        onClose={() => { setIsModalOpen(false); setSelectedJob(null); }}
         onSave={handleSave}
         jobData={selectedJob}
       />
@@ -181,6 +196,7 @@ const Dashboard = () => {
               <p className="text-gray-600 mb-2">
                 <span className="font-semibold">Type:</span> {activeJob.type || "N/A"}
               </p>
+
               {activeJob.link && (
                 <p className="text-gray-600 mb-2">
                   <span className="font-semibold">Link:</span>{" "}
@@ -188,9 +204,9 @@ const Dashboard = () => {
                     href={activeJob.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-500 underline"
                   >
-                    Apply Here
+                    {activeJob.link}
                   </a>
                 </p>
               )}

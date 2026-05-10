@@ -1,33 +1,37 @@
-# Workly
+# Workly — Job Board App (Next.js Full-Stack)
 
-A full-stack job tracking and discovery app built with **Next.js** (frontend + API routes) and **SQLite** via `@libsql/client`.
+A full-stack job board built with **Next.js 14 (App Router)**, combining the original Flask backend and React CRA frontend into one unified project.
 
-The original project had a separate React (CRA) frontend and Flask/Python backend. This repo combines both into a single Next.js monorepo.
+## Tech Stack
+- **Framework:** Next.js 14 (App Router)
+- **Database:** SQLite via `sql.js`
+- **Styling:** Tailwind CSS
+- **Animations:** Framer Motion
+- **Icons:** Lucide React
+- **Notifications:** React Hot Toast
 
 ## Project Structure
-
 ```
 workly/
-├── src/
-│   ├── app/
-│   │   ├── api/jobs/
-│   │   │   ├── route.js          # GET + POST
-│   │   │   └── [id]/route.js     # PUT + DELETE
-│   │   ├── Dashboard.jsx
-│   │   ├── globals.css
-│   │   ├── layout.js
-│   │   └── page.js
+├── app/
+│   ├── api/jobs/
+│   │   ├── route.js          # GET (list+filter), POST (create)
+│   │   ├── [id]/route.js     # PUT (update), DELETE
+│   │   └── scrape/route.js   # GET (scrape actuarylist.com)
 │   ├── components/
 │   │   ├── Header.jsx
+│   │   ├── Dashboard.jsx
 │   │   ├── JobCard.jsx
 │   │   ├── JobFormModal.jsx
-│   │   ├── FilterJob.jsx
-│   │   ├── DeleteJob.jsx
+│   │   ├── DeleteModal.jsx
+│   │   ├── FilterPanel.jsx
 │   │   └── Modal.jsx
-│   └── lib/
-│       └── db.js                 # SQLite client
-├── backend/                      # Original Flask/Python backend (reference + scraper)
-└── package.json
+│   ├── globals.css
+│   ├── layout.js
+│   └── page.js
+└── lib/
+    ├── db.js        # SQLite utility
+    └── scraper.js   # Fetch-based scraper
 ```
 
 ## Getting Started
@@ -37,23 +41,14 @@ npm install
 npm run dev
 ```
 
-App runs at http://localhost:3000
+Open http://localhost:3000
 
 ## API Endpoints
 
-| Method | Endpoint        | Description        |
-|--------|-----------------|--------------------|
-| GET    | /api/jobs       | List/filter jobs   |
-| POST   | /api/jobs       | Create a job       |
-| PUT    | /api/jobs/:id   | Update a job       |
-| DELETE | /api/jobs/:id   | Delete a job       |
-
-## Original Python Backend
-
-The `backend/` folder has the original Flask app + Selenium scraper. To run standalone:
-
-```bash
-cd backend
-pip install -r requirements.txt
-python app.py
-```
+| Method | Endpoint         | Description           |
+|--------|------------------|-----------------------|
+| GET    | /api/jobs        | List jobs with filters|
+| POST   | /api/jobs        | Create job            |
+| PUT    | /api/jobs/:id    | Update job            |
+| DELETE | /api/jobs/:id    | Delete job            |
+| GET    | /api/jobs/scrape | Scrape actuarylist    |

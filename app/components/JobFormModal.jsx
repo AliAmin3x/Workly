@@ -18,17 +18,9 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
     if (jobData) {
       setFormData(jobData);
     } else {
-      setFormData({
-        title: "",
-        company: "",
-        description: "",
-        location: "",
-        type: "",
-        date_posted: "",
-        link: "",
-      });
+      setFormData({ title: "", company: "", description: "", location: "", type: "", date_posted: "", link: "" });
     }
-  }, [jobData]);
+  }, [jobData, isOpen]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,11 +33,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={jobData ? "Edit Job" : "Add Job"}
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title={jobData ? "Edit Job" : "Add Job"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
@@ -59,15 +47,14 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
         <input
           type="text"
           name="company"
-          value={formData.company}
+          value={formData.company || ""}
           onChange={handleChange}
           placeholder="Company"
           className="w-full border border-gray-300 rounded-lg p-2"
-          required
         />
         <textarea
           name="description"
-          value={formData.description}
+          value={formData.description || ""}
           onChange={handleChange}
           placeholder="Job Description"
           className="w-full border border-gray-300 rounded-lg p-2"
@@ -77,7 +64,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
           <input
             type="text"
             name="location"
-            value={formData.location}
+            value={formData.location || ""}
             onChange={handleChange}
             placeholder="Location"
             className="w-1/2 border border-gray-300 rounded-lg p-2"
@@ -85,7 +72,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
           <input
             type="text"
             name="type"
-            value={formData.type}
+            value={formData.type || ""}
             onChange={handleChange}
             placeholder="Type (Full-time / Part-time)"
             className="w-1/2 border border-gray-300 rounded-lg p-2"
@@ -95,7 +82,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
           <input
             type="text"
             name="date_posted"
-            value={formData.date_posted}
+            value={formData.date_posted || ""}
             onChange={handleChange}
             placeholder="Date Posted"
             className="w-1/2 border border-gray-300 rounded-lg p-2"
@@ -103,7 +90,7 @@ const JobFormModal = ({ isOpen, onClose, onSave, jobData }) => {
           <input
             type="text"
             name="link"
-            value={formData.link}
+            value={formData.link || ""}
             onChange={handleChange}
             placeholder="Job Link (URL)"
             className="w-1/2 border border-gray-300 rounded-lg p-2"
